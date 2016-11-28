@@ -1,0 +1,24 @@
+{
+  "name": "trump-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "neo_shan",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "express": "^4.14.0",
+    "moment": "^2.16.0",
+    "redis": "^2.6.3",
+    "redis-middleware": "^1.4.0",
+    "underscore": "^1.8.3",
+    "uuid": "^3.0.0",
+    "winston": "^2.3.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.1.2"
+  }
+}
