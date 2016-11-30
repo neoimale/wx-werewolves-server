@@ -20,12 +20,16 @@ var wsServer = new WebSocketServer({server: server});
 wsServer.on('connection', function(ws) {
 	var location = url.parse(ws.upgradeReq.url, true);
 	console.log('ws>>>', location);
+	ws.on('message', function(msg) {
+		console.log('ws:message>>>', msg);
+	})
 })
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(require('redis-middleware')());
 app.use(require('./utils/log-middleware')());
+app.use(require('morgan')('short'));
 
 app.use('/room', require('./router/room'));
 app.use('/login', require('./router/login'));
