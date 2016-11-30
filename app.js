@@ -15,7 +15,7 @@ bluebird.promisifyAll(redis.Multi.prototype);
 // })
 var server = require('http').createServer(app);
 var WebSocketServer = require('ws').Server;
-var wsServer = new WebSocketServer(server);
+var wsServer = new WebSocketServer({server: server});
 
 wsServer.on('connection', function(ws) {
 	var location = url.parse(ws.upgradeReq.url, true);
