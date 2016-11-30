@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "pm2 start app.js --name trump-server",
+    "restart": "pm2 kill --name trump-server & npm start",
     "test": "mocha"
   },
   "author": "neo_shan",
