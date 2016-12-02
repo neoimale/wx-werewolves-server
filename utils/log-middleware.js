@@ -1,6 +1,7 @@
 var _ = require('underscore');
+var util = require('./util');
 // var winston = require('winston');
-var moment = require('moment');
+// var moment = require('moment');
 
 // 使winston的日志着色生效
 // winston.cli();

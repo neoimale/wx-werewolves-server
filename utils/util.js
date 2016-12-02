@@ -1,10 +1,8 @@
-var CONST = require('./const');
 var _ = require('underscore');
 
 function createRoomNumber(redis, callback) {
     redis.get('room_recycle', function(err, value) {
         if (err) {
-            console.log(err);
             callback(err);
         } else {
             var recyclePool = value ? value.split(',') : [];
@@ -14,9 +12,21 @@ function createRoomNumber(redis, callback) {
                 redis.set('room_recycle', recyclePool.join(','))
                 callback(null, number);
             } else {
-                redis.get('room_counter', function(err, counter) {
-                	redis.incr('room_counter');
-                	callback(null, counter + 1);
+                redis.get('room_counter', function(err1, counter) {
+                	if(err1) {
+                		callback(err1);
+                		return;
+                	}
+                	if(counter >= 1000) {
+                		redis.incr('room_counter', function(err2, result) {
+                			err2 ? callback(err2) : callback(null, result)
+                		});
+                	} else {
+                		redis.set('room_counter', 1000, function(err3) {
+                			err3 ? callback(err3) : callback(null, 1000);
+                		})
+                	}
+                	
                 })
             }
         }
@@ -54,8 +64,14 @@ function randomInt(max, min) {
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function sha1(text) {
+	//random key; don't modify
+	return require('crypto').createHmac('sha1', 'skNNcK2R48iAa3gB4H').update(text).digest('hex');
+}
+
 module.exports = {
 	createRoomNumber: createRoomNumber,
 	recycleRoomNumber: recycleRoomNumber,
-	randomRole: randomRole
+	randomRole: randomRole,
+	sha1: sha1
 }
