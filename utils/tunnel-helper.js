@@ -1,5 +1,6 @@
 var WebSocketServer = require('ws').Server;
 var url = require('url');
+var _ = require('underscore');
 var util = require('util');
 
 var wsServer;
@@ -35,14 +36,17 @@ module.exports = {
         })
         return wsServer;
     },
-    broadcast: function(type, content) {
-    	if(wsServer) {
-    		wsServer.clients.forEach(function(client) {
-    			client.send(JSON.stringify({
-    				type: type,
-    				content: content
-    			}))
-    		})
-    	}
+    broadcast: function(type, content, filter) {
+        if (wsServer) {
+            _.each(connectedTunnels, function(client, id) {
+                var checked = !filter || (typeof filter === 'function' && filter(id));
+                if (checked) {
+                    client.send(JSON.stringify({
+                        type: type,
+                        content: content
+                    }))
+                }
+            })
+        }
     }
 }

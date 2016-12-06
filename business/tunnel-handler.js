@@ -1,22 +1,22 @@
 'use strict';
 
-const TunnelService = require('qcloud-weapp-server-sdk').TunnelService;
+// const TunnelService = require('qcloud-weapp-server-sdk').TunnelService;
 
-let connectedTunnelIds = [];
+// let connectedTunnelIds = [];
 
-const _broadcast = (type, content) => {
-    TunnelService.broadcast(connectedTunnelIds, type, content).then(result => {
-        let invalidTunnelIds = result.data && result.data.invalidTunnelIds || [];
-        if (invalidTunnelIds.length > 0) {
-        	invalidTunnelIds.forEach(tunnelId => {
-        		let index = connectedTunnelIds.indexOf(tunnelId);
-        		if(index >= 0) {
-        			connectedTunnelIds.splice(index, 1);
-        		}
-        	})
-        }
-    })
-}
+// const _broadcast = (type, content) => {
+//     TunnelService.broadcast(connectedTunnelIds, type, content).then(result => {
+//         let invalidTunnelIds = result.data && result.data.invalidTunnelIds || [];
+//         if (invalidTunnelIds.length > 0) {
+//         	invalidTunnelIds.forEach(tunnelId => {
+//         		let index = connectedTunnelIds.indexOf(tunnelId);
+//         		if(index >= 0) {
+//         			connectedTunnelIds.splice(index, 1);
+//         		}
+//         	})
+//         }
+//     })
+// }
 
 class TunnelHandler {
     /*----------------------------------------------------------------

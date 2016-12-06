@@ -68,6 +68,7 @@ router.post('/join/:number', function(req, res) {
                 var num = _.size(players) + 1;
                 req.redis.hsetAsync('room:' + req.query.number + ':players', req.query.sessionid, num + ';' + newRole)
                     .then(function() {
+                    	req.redis.publish('mypub:join:room:' + req.query.number, req.query.sessionid);
                         res.endj({
                             code: 0,
                             data: {
