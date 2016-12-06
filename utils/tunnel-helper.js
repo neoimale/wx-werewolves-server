@@ -2,6 +2,7 @@ var WebSocketServer = require('ws').Server;
 var url = require('url');
 var _ = require('underscore');
 var util = require('./util');
+var debug = require('debug')('ws');
 
 var wsServer;
 var connectedTunnels = {};
@@ -12,13 +13,13 @@ module.exports = {
         wsServer.on('connection', function(ws) {
             var location = url.parse(ws.upgradeReq.url, true);
             var sessionId = location.path.replace('/', '');
-            console.log('ws:connect>>>', sessionId);
+            console.log('ws connect>>>', sessionId);
             util.verifySession(sessionId).then(function() {
                 connectedTunnels[sessionId] = ws;
                 handler.onConnect(sessionId);
             })
             ws.on('message', function(message) {
-                console.log('ws:message>>>', message);
+                debug('message>>>', message);
                 try {
                     let parsedMsg = JSON.parse(message);
                     handler.onMessage(sessionId, parsedMsg['type'], parsedMsg['content']);
@@ -28,6 +29,7 @@ module.exports = {
             })
 
             ws.on('close', function(code, message) {
+            	console.log('ws close>>>', sessionId);
                 handler.onClose(sessionId);
                 delete connectedTunnels[sessionId];
             })
@@ -40,7 +42,7 @@ module.exports = {
     },
     broadcast: function(type, content, filter) {
         if (wsServer) {
-        	console.log('ws:broadcast>>>', 'type: ' + type, 'content: ' + content);
+        	debug('broadcast>>>', 'type: ' + type, 'content: ' + JSON.stringify(content));
             _.each(connectedTunnels, function(client, id) {
                 var checked = !filter || (typeof filter === 'function' && filter(id));
                 if (checked) {

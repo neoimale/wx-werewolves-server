@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var debug = require('debug')('util');
 
 function createRoomNumber(redis, callback) {
     redis.get('room_recycle', function(err, value) {
@@ -35,6 +36,7 @@ function createRoomNumber(redis, callback) {
 
 function recycleRoomNumber(redis, number) {
 	redis.get('room_recycle', function(err, value) {
+		debug('recycleRoomNumber', value);
 		if(!err) {
 			var recyclePool = value ? value + ',' + number : '' + number;
 			redis.set('room_recycle', recyclePool)

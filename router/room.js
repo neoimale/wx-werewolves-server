@@ -1,6 +1,7 @@
 var router = require('express').Router();
 var util = require('../utils/util');
 var _ = require('underscore');
+var debug = require('debug')('router');
 
 router.post('/create', function(req, res) {
     // 创建房间
@@ -70,6 +71,7 @@ router.post('/join/:number', function(req, res) {
                 })
                 var config = JSON.parse(roomInfo.config);
                 var newRole = util.randomRole(config, existedRoles);
+                debug(req.query.sessionid + ' join room ' + number + ', role: ' + newRole);
                 if (!newRole) {
                     res.endj({
                         code: 1,

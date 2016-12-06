@@ -6,6 +6,7 @@
   "scripts": {
     "start": "pm2 start app.js --name trump-server",
     "restart": "pm2 kill --name trump-server & npm start",
+    "debug": "DEBUG=router,ws,util node app.js",
     "test": "mocha"
   },
   "author": "neo_shan",
@@ -13,6 +14,7 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
+    "debug": "^2.3.3",
     "express": "^4.14.0",
     "moment": "^2.16.0",
     "morgan": "^1.7.0",
