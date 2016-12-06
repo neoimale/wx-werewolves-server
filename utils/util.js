@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var debug = require('debug')('util');
 
+// TODO 这里可能存在生产者消费者问题
 function createRoomNumber(redis, callback) {
     redis.get('room_recycle', function(err, value) {
         if (err) {
