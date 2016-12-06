@@ -23,7 +23,7 @@ router.post('/create', function(req, res) {
 
 router.get('/get/:number', function(req, res) {
     // 获取房间信息
-    req.redis.hgetall('room:' + req.query.number, function(err, data) {
+    req.redis.hgetall('room:' + req.params.number, function(err, data) {
         if (err) {
             res.endj(err);
         } else {
@@ -44,7 +44,8 @@ router.post('/join/:number', function(req, res) {
         })
         return;
     }
-    req.redis.hgetallAsync('room:' + req.query.number).then(function(roomInfo) {
+    var number = req.params.number;
+    req.redis.hgetallAsync('room:' + number).then(function(roomInfo) {
         if (_.isEmpty(roomInfo)) {
             res.endj({
                 code: -1,
@@ -52,7 +53,7 @@ router.post('/join/:number', function(req, res) {
             })
             return;
         }
-        req.redis.hgetallAsync('room:' + req.query.number + ':players').then(function(players) {
+        req.redis.hgetallAsync('room:' + number + ':players').then(function(players) {
             if (players && players[req.query.sessionid]) {
                 res.endj({
                     code: 1,
@@ -66,9 +67,9 @@ router.post('/join/:number', function(req, res) {
                 var config = JSON.parse(roomInfo.config);
                 var newRole = util.randomRole(config, existedRoles);
                 var num = _.size(players) + 1;
-                req.redis.hsetAsync('room:' + req.query.number + ':players', req.query.sessionid, num + ';' + newRole)
+                req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
                     .then(function() {
-                    	req.redis.publish('mypub:join:room:' + req.query.number, req.query.sessionid);
+                    	req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
                         res.endj({
                             code: 0,
                             data: {
@@ -95,9 +96,10 @@ router.post('/restart/:number', function(req, res) {
         })
         return;
     }
-    req.redis.getAsync('room:' + req.query.number + ':god').then(function(id) {
+    var number = req.params.number;
+    req.redis.getAsync('room:' + number + ':god').then(function(id) {
         if (req.query.sessionid === id) {
-            req.redis.delAsync('room:' + req.query.number + ':players').then(function() {
+            req.redis.delAsync('room:' + number + ':players').then(function() {
                 res.endj({
                     code: 0,
                     message: '操作成功'
