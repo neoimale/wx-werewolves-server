@@ -11,8 +11,8 @@ module.exports = {
         wsServer = new WebSocketServer({ server: server });
         wsServer.on('connection', function(ws) {
             var location = url.parse(ws.upgradeReq.url, true);
-            console.log('ws:connect>>>', location);
-            var sessionId = location.path;
+            var sessionId = location.path.replace('/', '');
+            console.log('ws:connect>>>', sessionId);
             util.verifySession(sessionId).then(function() {
                 connectedTunnels[sessionId] = ws;
                 handler.onConnect(sessionId);
@@ -23,12 +23,13 @@ module.exports = {
                     let parsedMsg = JSON.parse(message);
                     handler.onMessage(sessionId, parsedMsg['type'], parsedMsg['content']);
                 } catch (e) {
-                    console.log(e);
+                    console.log(e.message);
                 }
             })
 
             ws.on('close', function(code, message) {
                 handler.onClose(sessionId);
+                delete connectedTunnels[sessionId];
             })
 
             ws.on('error', function(err) {
@@ -39,6 +40,7 @@ module.exports = {
     },
     broadcast: function(type, content, filter) {
         if (wsServer) {
+        	console.log('ws:broadcast>>>', 'type: ' + type, 'content: ' + content);
             _.each(connectedTunnels, function(client, id) {
                 var checked = !filter || (typeof filter === 'function' && filter(id));
                 if (checked) {

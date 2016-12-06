@@ -7,7 +7,7 @@ module.exports = function() {
     var systemSub = redis.createClient();
     systemSub.psubscribe('__keyspace@0__:*');
     systemSub.on('pmessage', function(pattern, channel, message) {
-        if (channel.indexOf('__keyspace*@0__:room:') != -1) {
+        if (channel.indexOf('__keyspace@0__:room:') != -1) {
         	console.log(pattern, channel, message);
             var match = /__keyspace@0__:room:(\d+)$/.exec(channel);
             if (!_.isEmpty(match) && message == 'expired') {
@@ -24,7 +24,7 @@ module.exports = function() {
     customSub.psubscribe('mypub:*');
     customSub.on('pmessage', function(pattern, channel, message) {
         console.log(pattern, channel, message);
-        var match = /mypub:(\s+):(\s+):?(.+)/.exec(channel);
+        var match = /mypub:(\w+):(\w+):?(.+)/.exec(channel);
         if (!_.isEmpty(match)) {
             if (match[1] == 'join' && match[2] == 'room') {
                 var roomNum = match[3];
