@@ -11,7 +11,7 @@ router.post('/create', function(req, res) {
         } else {
             req.redis.hmsetAsync('room:' + number, 'type', req.query.type.toString(),
                 'num', req.query.num.toString(), 'config', JSON.stringify(req.query.config)).then(function() {
-                req.redis.expire('room:' + number, 360); //1h过期
+                req.redis.expire('room:' + number, 60); //1h过期
                 res.endj({
                     code: 0,
                     data: { id: number }

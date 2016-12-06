@@ -8,14 +8,15 @@ module.exports = function() {
     systemSub.psubscribe('__keyspace@0__:*');
     systemSub.on('pmessage', function(pattern, channel, message) {
         if (channel.indexOf('__keyspace@0__:room:') != -1) {
-        	console.log(pattern, channel, message);
+            console.log(pattern, channel, message);
             var match = /__keyspace@0__:room:(\d+)$/.exec(channel);
             if (!_.isEmpty(match) && message == 'expired') {
                 var roomNum = match[1];
                 var client = systemSub.duplicate();
-                util.recycleRoomNumber(client, roomNum);
+                util.recycleRoomNumber(client, roomNum, function() {
+                    client.quit();
+                });
                 client.del('room:' + roomNum + ':players');
-                client.quit();
             }
         }
     })
