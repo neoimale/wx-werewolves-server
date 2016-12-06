@@ -1,7 +1,7 @@
 var WebSocketServer = require('ws').Server;
 var url = require('url');
 var _ = require('underscore');
-var util = require('util');
+var util = require('./util');
 
 var wsServer;
 var connectedTunnels = {};
@@ -11,6 +11,7 @@ module.exports = {
         wsServer = new WebSocketServer({ server: server });
         wsServer.on('connection', function(ws) {
             var location = url.parse(ws.upgradeReq.url, true);
+            console.log('ws:connect>>>', location);
             var sessionId = location.path;
             util.verifySession(sessionId).then(function() {
                 connectedTunnels[sessionId] = ws;

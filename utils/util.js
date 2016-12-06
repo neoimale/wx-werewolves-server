@@ -56,7 +56,7 @@ function randomRole(config, exist) {
 			count --;
 		}
 	})
-	return left[randomInt(left.length)];
+	return left.length > 0 ? left[randomInt(left.length)] : null;
 }
 
 function randomInt(max, min) {

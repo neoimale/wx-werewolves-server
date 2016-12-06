@@ -29,7 +29,11 @@ router.get('/get/:number', function(req, res) {
         } else {
             res.endj({
                 code: 0,
-                data: data
+                data: {
+                    type: data.type,
+                    num: data.num,
+                    config: JSON.parse(data.config)
+                }
             });
         }
     })
@@ -66,10 +70,18 @@ router.post('/join/:number', function(req, res) {
                 })
                 var config = JSON.parse(roomInfo.config);
                 var newRole = util.randomRole(config, existedRoles);
+                if (!newRole) {
+                    res.endj({
+                        code: 1,
+                        message: '该房间人数已满，请确认房间号是否正确'
+                    })
+                    return;
+                }
+
                 var num = _.size(players) + 1;
                 req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
                     .then(function() {
-                    	req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
+                        req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
                         res.endj({
                             code: 0,
                             data: {
