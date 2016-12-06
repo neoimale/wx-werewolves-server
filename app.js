@@ -3,7 +3,6 @@ var app = express();
 var bodyParser = require('body-parser');
 var bluebird = require('bluebird');
 var redis = require('redis');
-var url = require('url');
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 // var qcloud = require('qcloud-weapp-server-sdk');
@@ -14,16 +13,11 @@ bluebird.promisifyAll(redis.Multi.prototype);
 // 	TunnelSignatureKey: 'm84mUQQtwbqK2PpRgwyeFPpxq7p2Hj'
 // })
 var server = require('http').createServer(app);
-var WebSocketServer = require('ws').Server;
-var wsServer = new WebSocketServer({server: server});
-
-wsServer.on('connection', function(ws) {
-	var location = url.parse(ws.upgradeReq.url, true);
-	console.log('ws>>>', location);
-	ws.on('message', function(msg) {
-		console.log('ws:message>>>', msg);
-	})
-})
+var TunnelHelper = require('./utils/tunnel-helper');
+var TunnelHandler = require('./business/tunnel-handler');
+TunnelHelper.createServer(server, new TunnelHandler());
+var redisSubscribe = require('./business/redis-subscriber');
+redisSubscribe();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));

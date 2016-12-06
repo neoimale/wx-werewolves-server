@@ -69,9 +69,19 @@ function sha1(text) {
 	return require('crypto').createHmac('sha1', 'skNNcK2R48iAa3gB4H').update(text).digest('hex');
 }
 
+function verifySession(sessionid, db) {
+	var redis = db || require('redis').createClient();
+	var rlt = redis.existsAsync('session:' + sessionid);
+	if(redis != db) {
+		redis.quit();
+	}
+	return rlt;
+}
+
 module.exports = {
 	createRoomNumber: createRoomNumber,
 	recycleRoomNumber: recycleRoomNumber,
 	randomRole: randomRole,
-	sha1: sha1
+	sha1: sha1,
+	verifySession: verifySession
 }
