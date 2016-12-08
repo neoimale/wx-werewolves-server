@@ -31,19 +31,30 @@ module.exports = function() {
                 var roomNum = match[3];
                 var sessionId = message;
                 var client = customSub.duplicate();
-                client.hgetallAsync('room:' + roomNum + ':players').then(function(players) {
-                    if (players) {
-                        TunnelHelper.broadcast(0, {
+                // client.hgetallAsync('room:' + roomNum + ':players').then(function(players) {
+                //     if (players) {
+                //         TunnelHelper.broadcast(0, {
+                //             'event': 'join',
+                //             'message': {
+                //                 sessionid: sessionId,
+                //                 info: players[sessionId]
+                //             }
+                //         }, function(tunnelId) {
+                //             return players[tunnelId];
+                //         })
+                //     }
+                // })
+				client.getAsync('room:' + roomNum + ':god').then(function(god) {
+					if(god) {
+						TunnelHelper.sendMessage(god, 0, {
                             'event': 'join',
                             'message': {
                                 sessionid: sessionId,
-                                info: players[sessionId]
+                                info: ''
                             }
-                        }, function(tunnelId) {
-                            return players[tunnelId];
                         })
-                    }
-                })
+					}
+				})
                 client.quit();
             }
         }

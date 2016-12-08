@@ -14,9 +14,11 @@ module.exports = {
             var location = url.parse(ws.upgradeReq.url, true);
             var sessionId = location.path.replace('/', '');
             console.log('ws connect>>>', sessionId);
-            util.verifySession(sessionId).then(function() {
-                connectedTunnels[sessionId] = ws;
-                handler.onConnect(sessionId);
+            util.verifySession(sessionId).then(function(rlt) {
+                if (rlt) {
+                    connectedTunnels[sessionId] = ws;
+                    handler.onConnect(sessionId);
+                }
             })
             ws.on('message', function(message) {
                 debug('message>>>', message);
@@ -29,7 +31,7 @@ module.exports = {
             })
 
             ws.on('close', function(code, message) {
-            	console.log('ws close>>>', sessionId);
+                console.log('ws close>>>', sessionId);
                 handler.onClose(sessionId);
                 delete connectedTunnels[sessionId];
             })
@@ -42,7 +44,7 @@ module.exports = {
     },
     broadcast: function(type, content, filter) {
         if (wsServer) {
-        	debug('broadcast>>>', 'type: ' + type, 'content: ' + JSON.stringify(content));
+            debug('broadcast>>>', 'type: ' + type, 'content: ' + JSON.stringify(content));
             _.each(connectedTunnels, function(client, id) {
                 var checked = !filter || (typeof filter === 'function' && filter(id));
                 if (checked) {
@@ -52,6 +54,15 @@ module.exports = {
                     }))
                 }
             })
+        }
+    },
+    sendMessage: function(id, type, content) {
+        if (wsServer && connectedTunnels[id]) {
+            debug('send>>>', 'id: ' + id, 'type: ' + type, 'content: ' + JSON.stringify(content));
+            connectedTunnels[id].send(JSON.stringify({
+                type: type,
+                content: content
+            }));
         }
     }
 }

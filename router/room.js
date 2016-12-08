@@ -58,6 +58,25 @@ router.post('/join/:number', function(req, res) {
             })
             return;
         }
+        if(req.query.god) {
+        	req.redis.existAsync('room:' + number + ':god').then(function(rlt) {
+        		if(rlt) {
+        			res.endj({
+        				code: 1,
+        				message: '该房间已有上帝了'
+        			})
+        		} else {
+        			req.redis.setAsync('room:' + number + ':god', req.query.sessionid).then(function(){
+        				res.endj({
+        					code: 0,
+        					data: {
+        						god: 1
+        					}
+        				})
+        			})
+        		}
+        	})
+        }
         req.redis.hgetallAsync('room:' + number + ':players').then(function(players) {
             if (players && players[req.query.sessionid]) {
                 res.endj({
