@@ -58,63 +58,66 @@ router.post('/join/:number', function(req, res) {
             })
             return;
         }
-        if(req.query.god) {
-        	req.redis.existAsync('room:' + number + ':god').then(function(rlt) {
-        		if(rlt) {
-        			res.endj({
-        				code: 1,
-        				message: '该房间已有上帝了'
-        			})
-        		} else {
-        			req.redis.setAsync('room:' + number + ':god', req.query.sessionid).then(function(){
-        				res.endj({
-        					code: 0,
-        					data: {
-        						god: 1
-        					}
-        				})
-        			})
-        		}
-        	})
-        }
-        req.redis.hgetallAsync('room:' + number + ':players').then(function(players) {
-            if (players && players[req.query.sessionid]) {
-                res.endj({
-                    code: 1,
-                    message: '该玩家已加入游戏'
-                })
-            } else {
-                var existedRoles = _.map(players, function(item) {
-                    var role = item.split(';')[1];
-                    return role;
-                })
-                var config = JSON.parse(roomInfo.config);
-                var newRole = util.randomRole(config, existedRoles);
-                debug(req.query.sessionid + ' join room ' + number + ', role: ' + newRole);
-                if (!newRole) {
+        if (req.query.god) {
+        	//上帝加入
+            req.redis.existAsync('room:' + number + ':god').then(function(rlt) {
+                if (rlt) {
                     res.endj({
                         code: 1,
-                        message: '该房间人数已满，请确认房间号是否正确'
+                        message: '该房间已有上帝了'
                     })
-                    return;
-                }
-
-                var num = _.size(players) + 1;
-                req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
-                    .then(function() {
-                        req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
+                } else {
+                    req.redis.setAsync('room:' + number + ':god', req.query.sessionid).then(function() {
                         res.endj({
                             code: 0,
                             data: {
-                                role: newRole,
-                                num: num,
-                                desc: '',
-                                roomInfo: roomInfo
+                                god: 1
                             }
                         })
                     })
-            }
-        })
+                }
+            })
+        } else {
+        	//玩家加入
+            req.redis.hgetallAsync('room:' + number + ':players').then(function(players) {
+                if (players && players[req.query.sessionid]) {
+                    res.endj({
+                        code: 1,
+                        message: '该玩家已加入游戏'
+                    })
+                } else {
+                    var existedRoles = _.map(players, function(item) {
+                        var role = item.split(';')[1];
+                        return role;
+                    })
+                    var config = JSON.parse(roomInfo.config);
+                    var newRole = util.randomRole(config, existedRoles);
+                    debug(req.query.sessionid + ' join room ' + number + ', role: ' + newRole);
+                    if (!newRole) {
+                        res.endj({
+                            code: 1,
+                            message: '该房间人数已满，请确认房间号是否正确'
+                        })
+                        return;
+                    }
+
+                    var num = _.size(players) + 1;
+                    req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
+                        .then(function() {
+                            req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
+                            res.endj({
+                                code: 0,
+                                data: {
+                                    role: newRole,
+                                    num: num,
+                                    desc: '',
+                                    roomInfo: roomInfo
+                                }
+                            })
+                        })
+                }
+            })
+        }
     }).catch(function(e) {
         res.endj(e);
     })
