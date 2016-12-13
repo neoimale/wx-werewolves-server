@@ -61,13 +61,14 @@ router.post('/join/:number', function(req, res) {
         if (req.query.god) {
             //上帝加入
             req.redis.existsAsync('room:' + number + ':god').then(function(rlt) {
-                if (rlt) {
+                if (rlt != req.query.sessionid) {
                     res.endj({
                         code: 1,
                         message: '该房间已有上帝了'
                     })
                 } else {
                     req.redis.setAsync('room:' + number + ':god', req.query.sessionid).then(function() {
+                        req.redis.hdel('room:' + number + ':players', req.query.sessionid); //从玩家中清除
                         res.endj({
                             code: 0,
                             data: {
@@ -83,7 +84,7 @@ router.post('/join/:number', function(req, res) {
                 if (god && god == req.query.sessionid) {
                     res.endj({
                         code: 1,
-                        message: '你已经是这个房间的上帝了'
+                        message: '你已经是这个房间的上帝了,输入房间号加上god可回到上帝视角'
                     })
                     return;
                 }
