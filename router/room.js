@@ -84,7 +84,7 @@ router.post('/join/:number', function(req, res) {
                 if (god && god == req.query.sessionid) {
                     res.endj({
                         code: 1,
-                        message: '你已经是这个房间的上帝了,输入房间号加上god可回到上帝视角'
+                        message: '你已经是这个房间的上帝了,输入房间号加上god可进入上帝视角'
                     })
                     return;
                 }
@@ -101,8 +101,11 @@ router.post('/join/:number', function(req, res) {
                             }
                         })
                     } else {
+                        var num = 0;
                         var existedRoles = _.map(players, function(item) {
-                            var role = item.split(';')[1];
+                            var info = item.split(';');
+                            var role = info[1];
+                            num = Math.max(num, info[0]);
                             return role;
                         })
                         var config = JSON.parse(roomInfo.config);
@@ -115,8 +118,8 @@ router.post('/join/:number', function(req, res) {
                             })
                             return;
                         }
+                        num = num + 1;
 
-                        var num = _.size(players) + 1;
                         req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
                             .then(function() {
                                 req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
