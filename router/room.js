@@ -61,7 +61,7 @@ router.post('/join/:number', function(req, res) {
         if (req.query.god) {
             //上帝加入
             req.redis.existsAsync('room:' + number + ':god').then(function(rlt) {
-                if (rlt != req.query.sessionid) {
+                if (rlt && rlt != req.query.sessionid) {
                     res.endj({
                         code: 1,
                         message: '该房间已有上帝了'
