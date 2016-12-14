@@ -10,13 +10,14 @@ module.exports = function() {
         if (channel.indexOf('__keyspace@0__:room:') != -1) {
             console.log(pattern, channel, message);
             var match = /__keyspace@0__:room:(\d+)$/.exec(channel);
-            if (!_.isEmpty(match) && message == 'expired') {
+            if (!_.isEmpty(match) && (message == 'expired' || message == 'del')) {
                 var roomNum = match[1];
                 var client = systemSub.duplicate();
                 util.recycleRoomNumber(client, roomNum, function() {
                     client.quit();
                 });
                 client.del('room:' + roomNum + ':players');
+                client.del('room:' + roomNum + ':god');
             }
         }
     })

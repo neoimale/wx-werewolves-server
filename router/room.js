@@ -72,7 +72,8 @@ router.post('/join/:number', function(req, res) {
                         res.endj({
                             code: 0,
                             data: {
-                                god: 1
+                                god: 1,
+                                roomInfo: roomInfo
                             }
                         })
                     })
