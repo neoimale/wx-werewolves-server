@@ -44,18 +44,32 @@ module.exports = function() {
                 //         })
                 //     }
                 // })
-				client.getAsync('room:' + roomNum + ':god').then(function(god) {
-					if(god) {
-						TunnelHelper.sendMessage(god, 0, {
-                            'event': 'join',
-                            'message': {
-                                sessionid: sessionId,
-                                info: ''
+                client.getAsync('room:' + roomNum + ':god').then(function(god) {
+                    if (god) {
+                        client.multi([
+                            ['hget', 'room:' + roomNum + ':players', sessionId],
+                            ['hget', 'session:' + sessionId, 'user_info']
+                        ]).exec(function(err, replies) {
+                            client.quit();
+                            if(err || _.isEmpty(replies)) {
+                                return;
                             }
+
+                            var roleInfo = replies[0].split(';');
+                            var userInfo = replies[1];
+
+                            TunnelHelper.sendMessage(god, 0, {
+                                'event': 'join',
+                                'message': {
+                                    num: roleInfo[0],
+                                    role: roleInfo[1],
+                                    info: userInfo
+                                }
+                            })
                         })
-					}
-				})
-                client.quit();
+                    }
+                })
+                
             }
         }
     })

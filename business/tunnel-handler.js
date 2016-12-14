@@ -8,15 +8,19 @@
 //     TunnelService.broadcast(connectedTunnelIds, type, content).then(result => {
 //         let invalidTunnelIds = result.data && result.data.invalidTunnelIds || [];
 //         if (invalidTunnelIds.length > 0) {
-//         	invalidTunnelIds.forEach(tunnelId => {
-//         		let index = connectedTunnelIds.indexOf(tunnelId);
-//         		if(index >= 0) {
-//         			connectedTunnelIds.splice(index, 1);
-//         		}
-//         	})
+//          invalidTunnelIds.forEach(tunnelId => {
+//              let index = connectedTunnelIds.indexOf(tunnelId);
+//              if(index >= 0) {
+//                  connectedTunnelIds.splice(index, 1);
+//              }
+//          })
 //         }
 //     })
 // }
+
+const TunnelHelper = require('../utils/tunnel-helper');
+const redis = require('redis');
+const _ = require('underscore');
 
 class TunnelHandler {
     /*----------------------------------------------------------------
@@ -27,9 +31,9 @@ class TunnelHandler {
      * @param Array  userInfo  微信用户信息
      *----------------------------------------------------------------
      */
-    onRequest(tunnelId, userInfo) {
-        // TODO: add logic here
-    }
+    // onRequest(tunnelId, userInfo) {
+    //     // TODO: add logic here
+    // }
 
     /*----------------------------------------------------------------
      * 在客户端成功连接 WebSocket 信道服务之后会调用该方法
@@ -38,8 +42,62 @@ class TunnelHandler {
      * @param String tunnelId  信道 ID
      *----------------------------------------------------------------
      */
-    onConnect(tunnelId) {
-        // TODO: add logic here
+    onConnect(tunnelId, params) {
+        let business = params ? params.business : null;
+        switch (business) {
+            case 'god':
+                {
+                    let roomNum = params.room;
+                    if (roomNum) {
+                        let client = redis.createClient();
+                        client.hgetallAsync('room:' + roomNum + ':players').then(function(players) {
+                            if (players) {
+                                let sessions = _.keys(players);
+                                let actions = _.map(sessions, (sessionId) => {
+                                    return ['hget', 'session:' + sessionId, 'user_info'];
+                                })
+                                client.multi(actions).exec(function(err, replies) {
+                                    client.quit();
+                                    if(err || _.isEmpty(replies)) {
+                                        return;
+                                    }
+                                    
+                                    let userInfo = _.object(sessions, replies);
+                                    let playersInfo = _.map(players, (value, key) => {
+                                        value = value.split(';');
+                                        return {
+                                            num: parseInt(value[0]),
+                                            role: value[1],
+                                            info: userInfo[key]
+                                        }
+                                    });
+                                    playersInfo = _.sortBy(players, item => item.num);
+                                    TunnelHelper.sendMessage(tunnelId, 0, {
+                                        'event': 'connected',
+                                        'message': {
+                                            'players': playersInfo
+                                        }
+                                    })
+                                })
+                            } else {
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                    'event': 'connected',
+                                    'message': {
+                                        'players': []
+                                    }
+                                })
+                            }
+                        }).catch(function() {
+                            client.quit();
+                        })
+                    }
+                    break;
+                }
+            case 'player':
+                {
+                    break;
+                }
+        }
     }
 
     /*----------------------------------------------------------------

@@ -12,12 +12,13 @@ module.exports = {
         wsServer = new WebSocketServer({ server: server });
         wsServer.on('connection', function(ws) {
             var location = url.parse(ws.upgradeReq.url, true);
-            var sessionId = location.path.replace('/', '');
+            var sessionId = location.pathname.replace('/', '');
+            var params = location.query;
             console.log('ws connect>>>', sessionId);
             util.verifySession(sessionId).then(function(rlt) {
                 if (rlt) {
                     connectedTunnels[sessionId] = ws;
-                    handler.onConnect(sessionId);
+                    handler.onConnect(sessionId, params);
                 }
             })
             ws.on('message', function(message) {
