@@ -129,7 +129,7 @@ router.post('/join/:number', function(req, res) {
                                     data: {
                                         role: newRole,
                                         num: num,
-                                        desc: '',
+                                        desc: util.roleDescription(newRole),
                                         roomInfo: roomInfo
                                     }
                                 })

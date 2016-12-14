@@ -52,4 +52,30 @@ router.post('*', function(req, res) {
         })
 })
 
+router.get('verify', function(req, res) {
+    if (!req.query.sessionid) {
+        res.endj({
+            code: -1,
+            message: 'no sessionid in params'
+        })
+        return;
+    }
+
+    util.verifySession(req.query.sessionid, req.redis).then(function(rlt) {
+        if(rlt) {
+            res.endj({
+                code: 0,
+                message: 'OK'
+            })
+        } else {
+            res.endj({
+                code: 1,
+                message: 'session已过期'
+            })
+        }
+    }).catch(function(e) {
+        res.endj(e);
+    })
+})
+
 module.exports = router;
