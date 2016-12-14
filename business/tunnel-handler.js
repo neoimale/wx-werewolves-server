@@ -22,6 +22,8 @@ const TunnelHelper = require('../utils/tunnel-helper');
 const redis = require('redis');
 const _ = require('underscore');
 
+var debug = require('debug')('tunnel');
+
 class TunnelHandler {
     /*----------------------------------------------------------------
      * 在客户端请求 WebSocket 信道连接之后会调用该方法
@@ -44,6 +46,7 @@ class TunnelHandler {
      */
     onConnect(tunnelId, params) {
         let business = params ? params.business : null;
+        debug('onConnect >>> ', params);
         switch (business) {
             case 'god':
                 {
@@ -61,7 +64,7 @@ class TunnelHandler {
                                     if(err || _.isEmpty(replies)) {
                                         return;
                                     }
-                                    
+
                                     let userInfo = _.object(sessions, replies);
                                     let playersInfo = _.map(players, (value, key) => {
                                         value = value.split(';');
@@ -71,7 +74,8 @@ class TunnelHandler {
                                             info: userInfo[key]
                                         }
                                     });
-                                    playersInfo = _.sortBy(players, item => item.num);
+                                    playersInfo = _.sortBy(playersInfo, item => item.num);
+                                    debug('business: ', business, 'return: ', playersInfo);
                                     TunnelHelper.sendMessage(tunnelId, 0, {
                                         'event': 'connected',
                                         'message': {
