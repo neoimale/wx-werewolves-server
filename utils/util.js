@@ -89,26 +89,32 @@ function roleDescription(role) {
 		case 'wolf':
 		{
 			words = ['我来看看上局谁杀的我，哼哼哼哼哼!', '我的牙齿好大啊', '怎么又是狼人!脸好黑']
+			break;
 		}
 		case 'witch':
 		{
 			words = ['嗯...该毒死谁好呢', '要不要救他？救个屁，上局就他杀的我!']
+			break;
 		}
 		case 'oracle':
 		{
 			words = ['我看过你了，演，接着演', '我要竞选警长！选我！选我！']
+			break;
 		}
 		case 'civilian':
 		{
 			words = ['我真的只是个普通村民...']
+			break;
 		}
 		case 'idiot':
 		{
 			words = ['我是白痴...']
+			break;
 		}
 		case 'hunter':
 		{
 			words = ['谁也别惹我，敢杀我一枪带你走']
+			break;
 		}
 	}
 	return _.isEmpty(words) ? '' : words[randomInt(words.length)];
