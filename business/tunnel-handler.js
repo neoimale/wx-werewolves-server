@@ -63,7 +63,7 @@ class TunnelHandler {
                                 actions.unshift(['get', 'room:' + roomNum + ':head']);
                                 client.multi(actions).exec(function(err, replies) {
                                     client.quit();
-                                    if(err || _.isEmpty(replies)) {
+                                    if (err || _.isEmpty(replies)) {
                                         return;
                                     }
 
@@ -121,57 +121,69 @@ class TunnelHandler {
      *----------------------------------------------------------------
      */
     onMessage(tunnelId, type, content) {
-        if(type == 1) { // 上帝消息
-            switch(content.event) {
-                case 'death': {
-                    let roomNum = content.message.room;
-                    let id = content.message.key;
-                    let client = redis.createClient();
-                    client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
-                        if(player) {
-                            let playerInfo = JSON.parse(player);
-                            playerInfo.status = 'dead';
-                            client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
-                        }
-                        client.quit();
-                    }).catch(function() {
-                        client.quit();
-                    })
-                    break;
-                }
-                case 'reborn': {
-                    let roomNum = content.message.room;
-                    let id = content.message.key;
-                    let client = redis.createClient();
-                    client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
-                        if(player) {
-                            let playerInfo = JSON.parse(player);
-                            playerInfo.status = 'playing';
-                            client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
-                        }
-                        client.quit();
-                    }).catch(function() {
-                        client.quit();
-                    })
-                    break;
-                }
-                case 'head': {
-                    let roomNum = content.message.room;
-                    let id = content.message.key;
-                    let client = redis.createClient();
-                    client.setAsync('room:' + roomNum + ':head', id).then(function(rlt) {
-                        if(rlt) {
+        if (type == 1) { // 上帝消息
+            switch (content.event) {
+                case 'death':
+                    {
+                        let roomNum = content.message.room;
+                        let id = content.message.key;
+                        let client = redis.createClient();
+                        client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
+                            if (player) {
+                                let playerInfo = JSON.parse(player);
+                                playerInfo.status = 'dead';
+                                client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                    'event': 'dead',
+                                    'message': id
+                                })
+                            }
+                            client.quit();
+                        }).catch(function() {
+                            client.quit();
+                        })
+                        break;
+                    }
+                case 'reborn':
+                    {
+                        let roomNum = content.message.room;
+                        let id = content.message.key;
+                        let client = redis.createClient();
+                        client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
+                            if (player) {
+                                let playerInfo = JSON.parse(player);
+                                playerInfo.status = 'playing';
+                                client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                    'event': 'bringback',
+                                    'message': id
+                                })
+                            }
+                            client.quit();
+                        }).catch(function() {
+                            client.quit();
+                        })
+                        break;
+                    }
+                case 'head':
+                    {
+                        let roomNum = content.message.room;
+                        let id = content.message.key;
+                        let client = redis.createClient();
+                        client.getsetAsync('room:' + roomNum + ':head', id).then(function(old) {
                             TunnelHelper.sendMessage(tunnelId, 0, {
-                                'event': 'head_set',
-                                'message': content.message.key
+                                'event': 'headset',
+                                'message': {
+                                    newId: id,
+                                    oldId: old || ''
+                                }
                             })
-                        }
-                        client.quit();
-                    }).catch(function() {
-                        client.quit();
-                    })
-                    break;
-                }
+                            client.quit();
+                        }).catch(function() {
+                            client.quit();
+                        })
+                        break;
+                    }
             }
         }
     }
