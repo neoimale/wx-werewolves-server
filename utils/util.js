@@ -75,11 +75,15 @@ function sha1(text) {
 }
 
 function cipher(text) {
-	return require('crypto').createCipher('aes128', 'skNNcK2R48iAa3gB4H').update(text, 'utf8').final('hex');
+	var cipher = require('crypto').createCipher('aes128', 'skNNcK2R48iAa3gB4H');
+	cipher.update(text, 'utf8');
+	return cipher.final('hex');
 }
 
 function decipher(text) {
-	return require('crypto').createDecipher('aes128', 'skNNcK2R48iAa3gB4H').update(text, 'hex').final('utf8');
+	var decipher = require('crypto').createDecipher('aes128', 'skNNcK2R48iAa3gB4H');
+	decipher.update(text, 'hex')
+	return decipher.final('utf8');
 }
 
 function verifySession(sessionid, db) {

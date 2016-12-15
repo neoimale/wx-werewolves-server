@@ -16,6 +16,11 @@ router.post('/create', function(req, res) {
                     code: 0,
                     data: { id: number }
                 })
+            }).catch(function() {
+                res.endj({
+                    code: -1,
+                    message: 'Server Error'
+                })
             })
 
         }
@@ -27,7 +32,9 @@ router.get('/get/:number', function(req, res) {
     req.redis.hgetall('room:' + req.params.number, function(err, data) {
         if (err) {
             res.endj(err);
-        } else {
+            return;
+        } 
+        if (data) {
             res.endj({
                 code: 0,
                 data: {
@@ -36,6 +43,11 @@ router.get('/get/:number', function(req, res) {
                     config: JSON.parse(data.config)
                 }
             });
+        } else {
+            res.endj({
+                code: 1,
+                message: '没有这个房间'
+            })
         }
     })
 })
@@ -53,7 +65,7 @@ router.post('/join/:number', function(req, res) {
     req.redis.hgetallAsync('room:' + number).then(function(roomInfo) {
         if (_.isEmpty(roomInfo)) {
             res.endj({
-                code: -1,
+                code: 1,
                 message: '房间不存在或已过期'
             })
             return;
