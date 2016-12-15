@@ -21,6 +21,7 @@
 const TunnelHelper = require('../utils/tunnel-helper');
 const redis = require('redis');
 const _ = require('underscore');
+const util = require('../utils/util');
 
 var debug = require('debug')('tunnel');
 
@@ -48,7 +49,7 @@ class TunnelHandler {
         let business = params ? params.business : null;
         debug('onConnect >>> ', params);
         switch (business) {
-            case 'god':
+            case 'god': // 进入上帝视角
                 {
                     let roomNum = params.room;
                     if (roomNum) {
@@ -59,19 +60,24 @@ class TunnelHandler {
                                 let actions = _.map(sessions, (sessionId) => {
                                     return ['hget', 'session:' + sessionId, 'user_info'];
                                 })
+                                actions.unshift(['get', 'room:' + roomNum + ':head']);
                                 client.multi(actions).exec(function(err, replies) {
                                     client.quit();
                                     if(err || _.isEmpty(replies)) {
                                         return;
                                     }
 
+                                    let headId = replies.shift();
                                     let userInfo = _.object(sessions, replies);
                                     let playersInfo = _.map(players, (value, key) => {
-                                        value = value.split(';');
+                                        value = JSON.parse(value);
                                         return {
-                                            num: parseInt(value[0]),
-                                            role: value[1],
-                                            info: userInfo[key]
+                                            id: util.cipher(key),
+                                            num: value.num,
+                                            role: value.role,
+                                            head: key == headId ? 1 : 0,
+                                            status: value.status,
+                                            info: JSON.parse(userInfo[key])
                                         }
                                     });
                                     playersInfo = _.sortBy(playersInfo, item => item.num);
@@ -84,6 +90,7 @@ class TunnelHandler {
                                     })
                                 })
                             } else {
+                                client.quit();
                                 TunnelHelper.sendMessage(tunnelId, 0, {
                                     'event': 'connected',
                                     'message': {
@@ -114,7 +121,59 @@ class TunnelHandler {
      *----------------------------------------------------------------
      */
     onMessage(tunnelId, type, content) {
-        // TODO: add logic here
+        if(type == 1) { // 上帝消息
+            switch(content.event) {
+                case 'death': {
+                    let roomNum = content.message.room;
+                    let id = util.decipher(content.message.key);
+                    let client = redis.createClient();
+                    client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
+                        if(player) {
+                            let playerInfo = JSON.parse(player);
+                            playerInfo.status = 'dead';
+                            client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
+                        }
+                        client.quit();
+                    }).catch(function() {
+                        client.quit();
+                    })
+                    break;
+                }
+                case 'reborn': {
+                    let roomNum = content.message.room;
+                    let id = util.decipher(content.message.key);
+                    let client = redis.createClient();
+                    client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
+                        if(player) {
+                            let playerInfo = JSON.parse(player);
+                            playerInfo.status = 'playing';
+                            client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
+                        }
+                        client.quit();
+                    }).catch(function() {
+                        client.quit();
+                    })
+                    break;
+                }
+                case 'head': {
+                    let roomNum = content.message.room;
+                    let id = util.decipher(content.message.key);
+                    let client = redis.createClient();
+                    client.setAsync('room:' + roomNum + ':head', id).then(function(rlt) {
+                        if(rlt) {
+                            TunnelHelper.sendMessage(tunnelId, 0, {
+                                'event': 'head_set',
+                                'message': content.message.key
+                            })
+                        }
+                        client.quit();
+                    }).catch(function() {
+                        client.quit();
+                    })
+                    break;
+                }
+            }
+        }
     }
 
     /*----------------------------------------------------------------

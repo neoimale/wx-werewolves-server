@@ -32,19 +32,6 @@ module.exports = function() {
                 var roomNum = match[3];
                 var sessionId = message;
                 var client = customSub.duplicate();
-                // client.hgetallAsync('room:' + roomNum + ':players').then(function(players) {
-                //     if (players) {
-                //         TunnelHelper.broadcast(0, {
-                //             'event': 'join',
-                //             'message': {
-                //                 sessionid: sessionId,
-                //                 info: players[sessionId]
-                //             }
-                //         }, function(tunnelId) {
-                //             return players[tunnelId];
-                //         })
-                //     }
-                // })
                 client.getAsync('room:' + roomNum + ':god').then(function(god) {
                     if (god) {
                         client.multi([
@@ -56,14 +43,15 @@ module.exports = function() {
                                 return;
                             }
 
-                            var roleInfo = replies[0].split(';');
-                            var userInfo = replies[1];
+                            var roleInfo = JSON.parse(replies[0]);
+                            var userInfo = JSON.parse(replies[1]);
 
                             TunnelHelper.sendMessage(god, 0, {
                                 'event': 'join',
                                 'message': {
-                                    num: roleInfo[0],
-                                    role: roleInfo[1],
+                                    id: util.cipher(sessionId),
+                                    num: roleInfo.num,
+                                    role: roleInfo.num,
                                     info: userInfo
                                 }
                             })

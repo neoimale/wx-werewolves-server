@@ -58,6 +58,7 @@ router.post('/join/:number', function(req, res) {
             })
             return;
         }
+        roomInfo.config = JSON.parse(roomInfo.config);
         if (req.query.god) {
             //上帝加入
             req.redis.existsAsync('room:' + number + ':god').then(function(rlt) {
@@ -91,12 +92,12 @@ router.post('/join/:number', function(req, res) {
                 }
                 req.redis.hgetallAsync('room:' + number + ':players').then(function(players) {
                     if (players && players[req.query.sessionid]) {
-                        var playerInfo = players[req.query.sessionid].split(';');
+                        var playerInfo = JSON.parse(players[req.query.sessionid]);
                         res.endj({
                             code: 0,
                             data: {
-                                num: playerInfo[0],
-                                role: playerInfo[1],
+                                num: playerInfo.num,
+                                role: playerInfo.role,
                                 desc: '',
                                 roomInfo: roomInfo
                             }
@@ -104,12 +105,12 @@ router.post('/join/:number', function(req, res) {
                     } else {
                         var num = 0;
                         var existedRoles = _.map(players, function(item) {
-                            var info = item.split(';');
-                            var role = info[1];
-                            num = Math.max(num, info[0]);
+                            var info = JSON.parse(item);
+                            var role = info.role;
+                            num = Math.max(num, info.num);
                             return role;
                         })
-                        var config = JSON.parse(roomInfo.config);
+                        var config = roomInfo.config;
                         var newRole = util.randomRole(config, existedRoles);
                         debug(req.query.sessionid + ' join room ' + number + ', role: ' + newRole);
                         if (!newRole) {
@@ -121,7 +122,7 @@ router.post('/join/:number', function(req, res) {
                         }
                         num = num + 1;
 
-                        req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, num + ';' + newRole)
+                        req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, JSON.stringify({num : num, role: newRole}))
                             .then(function() {
                                 req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
                                 res.endj({

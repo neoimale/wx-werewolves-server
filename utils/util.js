@@ -74,6 +74,14 @@ function sha1(text) {
 	return require('crypto').createHmac('sha1', 'skNNcK2R48iAa3gB4H').update(text).digest('hex');
 }
 
+function cipher(text) {
+	return require('crypto').createCipher('aes128', 'skNNcK2R48iAa3gB4H').update(text, 'utf8').final('hex');
+}
+
+function decipher(text) {
+	return require('crypto').createDecipher('aes128', 'skNNcK2R48iAa3gB4H').update(text, 'hex').final('utf8');
+}
+
 function verifySession(sessionid, db) {
 	var redis = db || require('redis').createClient();
 	var rlt = redis.existsAsync('session:' + sessionid);
@@ -88,7 +96,7 @@ function roleDescription(role) {
 	switch(role) {
 		case 'wolf':
 		{
-			words = ['我来看看上局谁杀的我，哼哼哼哼哼!', '我的牙齿好大啊', '怎么又是狼人!脸好黑']
+			words = ['上局谁杀的我，哼哼哼哼哼!', '我的牙齿好大啊', '怎么又是狼人!脸好黑', '我来搞事情了']
 			break;
 		}
 		case 'witch':
@@ -98,7 +106,7 @@ function roleDescription(role) {
 		}
 		case 'oracle':
 		{
-			words = ['我看过你了，演，接着演', '我要竞选警长！选我！选我！']
+			words = ['我看过你了，演，接着演', '天上浮云似白衣,斯须改变如苍狗', '我要竞选警长！选我！选我！', '我的眼睛洞察一切']
 			break;
 		}
 		case 'civilian':
@@ -125,6 +133,8 @@ module.exports = {
 	recycleRoomNumber: recycleRoomNumber,
 	randomRole: randomRole,
 	sha1: sha1,
+	cipher: cipher,
+	decipher: decipher,
 	verifySession: verifySession,
 	roleDescription: roleDescription
 }
