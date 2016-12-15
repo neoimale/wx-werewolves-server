@@ -18,6 +18,7 @@ module.exports = function() {
                 });
                 client.del('room:' + roomNum + ':players');
                 client.del('room:' + roomNum + ':god');
+                client.del('room:' + roomNum + ':head');
             }
         }
     })
@@ -49,7 +50,7 @@ module.exports = function() {
                             TunnelHelper.sendMessage(god, 0, {
                                 'event': 'join',
                                 'message': {
-                                    id: util.cipher(sessionId),
+                                    id: sessionId,
                                     num: roleInfo.num,
                                     role: roleInfo.num,
                                     info: userInfo

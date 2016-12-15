@@ -72,7 +72,7 @@ class TunnelHandler {
                                     let playersInfo = _.map(players, (value, key) => {
                                         value = JSON.parse(value);
                                         return {
-                                            id: util.cipher(key),
+                                            id: key,
                                             num: value.num,
                                             role: value.role,
                                             head: key == headId ? 1 : 0,
@@ -125,7 +125,7 @@ class TunnelHandler {
             switch(content.event) {
                 case 'death': {
                     let roomNum = content.message.room;
-                    let id = util.decipher(content.message.key);
+                    let id = content.message.key;
                     let client = redis.createClient();
                     client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
                         if(player) {
@@ -141,7 +141,7 @@ class TunnelHandler {
                 }
                 case 'reborn': {
                     let roomNum = content.message.room;
-                    let id = util.decipher(content.message.key);
+                    let id = content.message.key;
                     let client = redis.createClient();
                     client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
                         if(player) {
@@ -157,7 +157,7 @@ class TunnelHandler {
                 }
                 case 'head': {
                     let roomNum = content.message.room;
-                    let id = util.decipher(content.message.key);
+                    let id = content.message.key;
                     let client = redis.createClient();
                     client.setAsync('room:' + roomNum + ':head', id).then(function(rlt) {
                         if(rlt) {
