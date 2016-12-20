@@ -19,6 +19,7 @@ TunnelHelper.createServer(server, new TunnelHandler());
 var redisSubscribe = require('./business/redis-subscriber');
 redisSubscribe();
 
+app.set('trust proxy', true);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(require('redis-middleware')());

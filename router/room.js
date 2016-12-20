@@ -169,6 +169,7 @@ router.post('/restart/:number', function(req, res) {
     req.redis.getAsync('room:' + number + ':god').then(function(id) {
         if (req.query.sessionid === id) {
             req.redis.delAsync('room:' + number + ':players').then(function() {
+                req.redis.del('room:' + number + ':head');
                 res.endj({
                     code: 0,
                     message: '操作成功'

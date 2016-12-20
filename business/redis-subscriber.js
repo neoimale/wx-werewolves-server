@@ -52,7 +52,7 @@ module.exports = function() {
                                 'message': {
                                     id: sessionId,
                                     num: roleInfo.num,
-                                    role: roleInfo.num,
+                                    role: roleInfo.role,
                                     info: userInfo
                                 }
                             })
