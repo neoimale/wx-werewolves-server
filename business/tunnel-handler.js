@@ -28,22 +28,22 @@ var debug = require('debug')('tunnel');
 class TunnelHandler {
 
     redisClient() {
-        if(!(this.client && this.client.connected)) {
-            this.client = redis.createClient();
+            if (!(this.client && this.client.connected)) {
+                this.client = redis.createClient();
+            }
+            return this.client;
         }
-        return this.client;
-    }
-    /*----------------------------------------------------------------
-     * 在客户端请求 WebSocket 信道连接之后会调用该方法
-     * 此时可以把信道 ID 和用户信息关联起来
-     *----------------------------------------------------------------
-     * @param String tunnelId  信道 ID
-     * @param Array  userInfo  微信用户信息
-     *----------------------------------------------------------------
-     */
-    // onRequest(tunnelId, userInfo) {
-    //     // TODO: add logic here
-    // }
+        /*----------------------------------------------------------------
+         * 在客户端请求 WebSocket 信道连接之后会调用该方法
+         * 此时可以把信道 ID 和用户信息关联起来
+         *----------------------------------------------------------------
+         * @param String tunnelId  信道 ID
+         * @param Array  userInfo  微信用户信息
+         *----------------------------------------------------------------
+         */
+        // onRequest(tunnelId, userInfo) {
+        //     // TODO: add logic here
+        // }
 
     /*----------------------------------------------------------------
      * 在客户端成功连接 WebSocket 信道服务之后会调用该方法
@@ -68,12 +68,14 @@ class TunnelHandler {
                                     return ['hget', 'session:' + sessionId, 'user_info'];
                                 })
                                 actions.unshift(['get', 'room:' + roomNum + ':head']);
+                                actions.unshift(['hgetall', 'room:' + roomNum + ':status']);
                                 client.multi(actions).exec(function(err, replies) {
                                     // client.quit();
                                     if (err || _.isEmpty(replies)) {
                                         return;
                                     }
 
+                                    let roomStatus = replies.shift() || {};
                                     let headId = replies.shift();
                                     let userInfo = _.object(sessions, replies);
                                     let playersInfo = _.map(players, (value, key) => {
@@ -83,7 +85,7 @@ class TunnelHandler {
                                             num: value.num,
                                             role: value.role,
                                             head: key == headId ? 1 : 0,
-                                            status: value.status,
+                                            status: roomStatus[key],
                                             info: JSON.parse(userInfo[key])
                                         }
                                     });
@@ -135,17 +137,12 @@ class TunnelHandler {
                         let roomNum = content.message.room;
                         let id = content.message.key;
                         let client = this.redisClient();
-                        client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
-                            if (player) {
-                                let playerInfo = JSON.parse(player);
-                                playerInfo.status = 'dead';
-                                client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
-                                TunnelHelper.sendMessage(tunnelId, 0, {
+                        client.hsetAsync('room:' + roomNum + ':status', id, 'dead').then(function() {
+                            TunnelHelper.sendMessage(tunnelId, 0, {
                                     'event': 'dead',
                                     'message': id
                                 })
-                            }
-                            // client.quit();
+                                // client.quit();
                         }).catch(function() {
                             // client.quit();
                         })
@@ -156,17 +153,12 @@ class TunnelHandler {
                         let roomNum = content.message.room;
                         let id = content.message.key;
                         let client = this.redisClient();
-                        client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
-                            if (player) {
-                                let playerInfo = JSON.parse(player);
-                                playerInfo.status = 'playing';
-                                client.hset('room:' + roomNum + ':players', id, JSON.stringify(playerInfo));
-                                TunnelHelper.sendMessage(tunnelId, 0, {
+                        client.hsetAsync('room:' + roomNum + ':status', id, '').then(function() {
+                            TunnelHelper.sendMessage(tunnelId, 0, {
                                     'event': 'bringback',
                                     'message': id
                                 })
-                            }
-                            // client.quit();
+                                // client.quit();
                         }).catch(function() {
                             // client.quit();
                         })
@@ -179,13 +171,13 @@ class TunnelHandler {
                         let client = this.redisClient();
                         client.getsetAsync('room:' + roomNum + ':head', id).then(function(old) {
                             TunnelHelper.sendMessage(tunnelId, 0, {
-                                'event': 'headset',
-                                'message': {
-                                    newId: id,
-                                    oldId: old || ''
-                                }
-                            })
-                            // client.quit();
+                                    'event': 'headset',
+                                    'message': {
+                                        newId: id,
+                                        oldId: old || ''
+                                    }
+                                })
+                                // client.quit();
                         }).catch(function() {
                             // client.quit();
                         })
