@@ -26,6 +26,13 @@ const util = require('../utils/util');
 var debug = require('debug')('tunnel');
 
 class TunnelHandler {
+
+    redisClient() {
+        if(!(this.client && this.client.connected)) {
+            this.client = redis.createClient();
+        }
+        return this.client;
+    }
     /*----------------------------------------------------------------
      * 在客户端请求 WebSocket 信道连接之后会调用该方法
      * 此时可以把信道 ID 和用户信息关联起来
@@ -53,7 +60,7 @@ class TunnelHandler {
                 {
                     let roomNum = params.room;
                     if (roomNum) {
-                        let client = redis.createClient();
+                        let client = this.redisClient();
                         client.hgetallAsync('room:' + roomNum + ':players').then(function(players) {
                             if (players) {
                                 let sessions = _.keys(players);
@@ -62,7 +69,7 @@ class TunnelHandler {
                                 })
                                 actions.unshift(['get', 'room:' + roomNum + ':head']);
                                 client.multi(actions).exec(function(err, replies) {
-                                    client.quit();
+                                    // client.quit();
                                     if (err || _.isEmpty(replies)) {
                                         return;
                                     }
@@ -90,7 +97,7 @@ class TunnelHandler {
                                     })
                                 })
                             } else {
-                                client.quit();
+                                // client.quit();
                                 TunnelHelper.sendMessage(tunnelId, 0, {
                                     'event': 'connected',
                                     'message': {
@@ -99,7 +106,7 @@ class TunnelHandler {
                                 })
                             }
                         }).catch(function() {
-                            client.quit();
+                            // client.quit();
                         })
                     }
                     break;
@@ -127,7 +134,7 @@ class TunnelHandler {
                     {
                         let roomNum = content.message.room;
                         let id = content.message.key;
-                        let client = redis.createClient();
+                        let client = this.redisClient();
                         client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
                             if (player) {
                                 let playerInfo = JSON.parse(player);
@@ -138,9 +145,9 @@ class TunnelHandler {
                                     'message': id
                                 })
                             }
-                            client.quit();
+                            // client.quit();
                         }).catch(function() {
-                            client.quit();
+                            // client.quit();
                         })
                         break;
                     }
@@ -148,7 +155,7 @@ class TunnelHandler {
                     {
                         let roomNum = content.message.room;
                         let id = content.message.key;
-                        let client = redis.createClient();
+                        let client = this.redisClient();
                         client.hgetAsync('room:' + roomNum + ':players', id).then(function(player) {
                             if (player) {
                                 let playerInfo = JSON.parse(player);
@@ -159,9 +166,9 @@ class TunnelHandler {
                                     'message': id
                                 })
                             }
-                            client.quit();
+                            // client.quit();
                         }).catch(function() {
-                            client.quit();
+                            // client.quit();
                         })
                         break;
                     }
@@ -169,7 +176,7 @@ class TunnelHandler {
                     {
                         let roomNum = content.message.room;
                         let id = content.message.key;
-                        let client = redis.createClient();
+                        let client = this.redisClient();
                         client.getsetAsync('room:' + roomNum + ':head', id).then(function(old) {
                             TunnelHelper.sendMessage(tunnelId, 0, {
                                 'event': 'headset',
@@ -178,9 +185,9 @@ class TunnelHandler {
                                     oldId: old || ''
                                 }
                             })
-                            client.quit();
+                            // client.quit();
                         }).catch(function() {
-                            client.quit();
+                            // client.quit();
                         })
                         break;
                     }

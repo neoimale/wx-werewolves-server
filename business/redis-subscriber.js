@@ -13,12 +13,18 @@ module.exports = function() {
             if (!_.isEmpty(match) && (message == 'expired' || message == 'del')) {
                 var roomNum = match[1];
                 var client = systemSub.duplicate();
-                util.recycleRoomNumber(client, roomNum, function() {
-                    client.quit();
-                });
-                client.del('room:' + roomNum + ':players');
-                client.del('room:' + roomNum + ':god');
-                client.del('room:' + roomNum + ':head');
+                client.keys('room:' + roomNum + ':*', function(err, keys) {
+                    util.recycleRoomNumber(client, roomNum, function() {
+                        client.quit();
+                    });
+                    if(!err && !_.isEmpty(keys)) {
+                        client.del(...keys);
+                    }
+                })
+
+                // client.del('room:' + roomNum + ':players');
+                // client.del('room:' + roomNum + ':god');
+                // client.del('room:' + roomNum + ':head');
             }
         }
     })
@@ -40,7 +46,7 @@ module.exports = function() {
                             ['hget', 'session:' + sessionId, 'user_info']
                         ]).exec(function(err, replies) {
                             client.quit();
-                            if(err || _.isEmpty(replies)) {
+                            if (err || _.isEmpty(replies)) {
                                 return;
                             }
 
@@ -59,7 +65,7 @@ module.exports = function() {
                         })
                     }
                 })
-                
+
             }
         }
     })
