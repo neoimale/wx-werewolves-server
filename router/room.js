@@ -110,7 +110,7 @@ router.post('/join/:number', function(req, res) {
                             data: {
                                 num: playerInfo.num,
                                 role: playerInfo.role,
-                                desc: '',
+                                desc: util.roleDescription(playerInfo.role),
                                 roomInfo: roomInfo
                             }
                         })
