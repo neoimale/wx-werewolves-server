@@ -131,9 +131,9 @@ class TunnelHandler {
      */
     onMessage(tunnelId, type, content) {
         if (type == 1) { // 上帝消息
-            switch (content.event) {
-                case 'death':
-                    {
+            if (content.category == 'god') {
+                switch (content.event) {
+                    case 'death':
                         let roomNum = content.message.room;
                         let id = content.message.key;
                         let client = this.redisClient();
@@ -147,9 +147,7 @@ class TunnelHandler {
                             // client.quit();
                         })
                         break;
-                    }
-                case 'reborn':
-                    {
+                    case 'reborn':
                         let roomNum = content.message.room;
                         let id = content.message.key;
                         let client = this.redisClient();
@@ -163,9 +161,7 @@ class TunnelHandler {
                             // client.quit();
                         })
                         break;
-                    }
-                case 'head':
-                    {
+                    case 'head':
                         let roomNum = content.message.room;
                         let id = content.message.key;
                         let client = this.redisClient();
@@ -182,7 +178,7 @@ class TunnelHandler {
                             // client.quit();
                         })
                         break;
-                    }
+                }
             }
         }
     }

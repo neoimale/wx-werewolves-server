@@ -33,7 +33,7 @@ router.get('/get/:number', function(req, res) {
         if (err) {
             res.endj(err);
             return;
-        } 
+        }
         if (data) {
             res.endj({
                 code: 0,
@@ -134,7 +134,7 @@ router.post('/join/:number', function(req, res) {
                         }
                         num = num + 1;
 
-                        req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, JSON.stringify({num : num, role: newRole}))
+                        req.redis.hsetAsync('room:' + number + ':players', req.query.sessionid, JSON.stringify({ num: num, role: newRole }))
                             .then(function() {
                                 req.redis.publish('mypub:join:room:' + number, req.query.sessionid);
                                 res.endj({
@@ -168,8 +168,14 @@ router.post('/restart/:number', function(req, res) {
     var number = req.params.number;
     req.redis.getAsync('room:' + number + ':god').then(function(id) {
         if (req.query.sessionid === id) {
-            req.redis.delAsync('room:' + number + ':players').then(function() {
-                req.redis.del('room:' + number + ':head');
+            req.redis.keysAsync('room:' + number + ':*').then(function(keys) {
+                keys = keys || [];
+                keys = _.filter(keys, function(item) {
+                    return item.indexOf('god') == -1;
+                })
+                if (!_.isEmpty(keys)) {
+                    req.redis.del(...keys);
+                }
                 res.endj({
                     code: 0,
                     message: '操作成功'
