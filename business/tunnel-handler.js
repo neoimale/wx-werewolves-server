@@ -134,50 +134,56 @@ class TunnelHandler {
             if (content.category == 'god') {
                 switch (content.event) {
                     case 'death':
-                        let roomNum = content.message.room;
-                        let id = content.message.key;
-                        let client = this.redisClient();
-                        client.hsetAsync('room:' + roomNum + ':status', id, 'dead').then(function() {
-                            TunnelHelper.sendMessage(tunnelId, 0, {
-                                    'event': 'dead',
-                                    'message': id
-                                })
+                        {
+                            let roomNum = content.message.room;
+                            let id = content.message.key;
+                            let client = this.redisClient();
+                            client.hsetAsync('room:' + roomNum + ':status', id, 'dead').then(function() {
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                        'event': 'dead',
+                                        'message': id
+                                    })
+                                    // client.quit();
+                            }).catch(function() {
                                 // client.quit();
-                        }).catch(function() {
-                            // client.quit();
-                        })
-                        break;
+                            })
+                            break;
+                        }
                     case 'reborn':
-                        let roomNum = content.message.room;
-                        let id = content.message.key;
-                        let client = this.redisClient();
-                        client.hsetAsync('room:' + roomNum + ':status', id, '').then(function() {
-                            TunnelHelper.sendMessage(tunnelId, 0, {
-                                    'event': 'bringback',
-                                    'message': id
-                                })
+                        {
+                            let roomNum = content.message.room;
+                            let id = content.message.key;
+                            let client = this.redisClient();
+                            client.hsetAsync('room:' + roomNum + ':status', id, '').then(function() {
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                        'event': 'bringback',
+                                        'message': id
+                                    })
+                                    // client.quit();
+                            }).catch(function() {
                                 // client.quit();
-                        }).catch(function() {
-                            // client.quit();
-                        })
-                        break;
+                            })
+                            break;
+                        }
                     case 'head':
-                        let roomNum = content.message.room;
-                        let id = content.message.key;
-                        let client = this.redisClient();
-                        client.getsetAsync('room:' + roomNum + ':head', id).then(function(old) {
-                            TunnelHelper.sendMessage(tunnelId, 0, {
-                                    'event': 'headset',
-                                    'message': {
-                                        newId: id,
-                                        oldId: old || ''
-                                    }
-                                })
+                        {
+                            let roomNum = content.message.room;
+                            let id = content.message.key;
+                            let client = this.redisClient();
+                            client.getsetAsync('room:' + roomNum + ':head', id).then(function(old) {
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                        'event': 'headset',
+                                        'message': {
+                                            newId: id,
+                                            oldId: old || ''
+                                        }
+                                    })
+                                    // client.quit();
+                            }).catch(function() {
                                 // client.quit();
-                        }).catch(function() {
-                            // client.quit();
-                        })
-                        break;
+                            })
+                            break;
+                        }
                 }
             }
         }
