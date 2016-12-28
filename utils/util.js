@@ -49,6 +49,7 @@ function recycleRoomNumber(redis, number, callback) {
 
 function randomRole(config, exist) {
 	var left = [];
+	config = _.clone(config);
 	_.each(exist, function(item) {
 		if(config[item]) {
 			config[item] = config[item] - 1;
