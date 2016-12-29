@@ -97,8 +97,12 @@ router.post('/join/:number', function(req, res) {
             req.redis.getAsync('room:' + number + ':god').then(function(god) {
                 if (god && god == req.query.sessionid) {
                     res.endj({
-                        code: 1,
-                        message: '你已经是这个房间的上帝了,输入房间号加上god可进入上帝视角'
+                        code: 0,
+                        // message: '你已经是这个房间的上帝了,输入房间号加上god可进入上帝视角',
+                        data: {
+                            god: 1,
+                            roomInfo: roomInfo
+                        }
                     })
                     return;
                 }

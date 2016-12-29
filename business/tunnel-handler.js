@@ -184,6 +184,21 @@ class TunnelHandler {
                             })
                             break;
                         }
+                    case 'cancelhead':
+                        {
+                            let roomNum = content.message.room;
+                            let client = this.redisClient();
+                            client.getsetAsync('room:' + roomNum + ':head', '').then(function(old) {
+                                TunnelHelper.sendMessage(tunnelId, 0, {
+                                        'event': 'headcanceled',
+                                        'message': old
+                                    })
+                                    // client.quit();
+                            }).catch(function() {
+                                // client.quit();
+                            })
+                            break;
+                        }
                 }
             }
         }
