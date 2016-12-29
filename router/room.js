@@ -73,7 +73,7 @@ router.post('/join/:number', function(req, res) {
         roomInfo.config = JSON.parse(roomInfo.config);
         if (req.query.god) {
             //上帝加入
-            req.redis.existsAsync('room:' + number + ':god').then(function(rlt) {
+            req.redis.getAsync('room:' + number + ':god').then(function(rlt) {
                 if (rlt && rlt != req.query.sessionid) {
                     res.endj({
                         code: 1,
