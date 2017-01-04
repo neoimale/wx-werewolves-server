@@ -52,7 +52,7 @@ router.post('*', function(req, res) {
         })
 })
 
-router.get('verify', function(req, res) {
+router.get('/verify', function(req, res) {
     if (!req.query.sessionid) {
         res.endj({
             code: -1,
